@@ -22,7 +22,7 @@ PROMPT_SISTEMA = (
 # Inicialização com o formato exato exigido pelo servidor atualizado
 try:
     model = genai.GenerativeModel(
-        model_name="models/gemini-1.5-flash", 
+        model_name="models/gemini-1.0-pro", 
         system_instruction=PROMPT_SISTEMA
     )
 except Exception as e:
