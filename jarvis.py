@@ -21,7 +21,7 @@ PROMPT_SISTEMA = (
 
 # Inicialização estável do modelo
 try:
-    models = genai.GenerativeModel(
+    model = genai.GenerativeModel(
         model_name="gemini pro", 
         system_instruction=PROMPT_SISTEMA
     )
