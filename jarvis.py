@@ -1,16 +1,16 @@
 import os
 import streamlit as st
 from datetime import datetime
-from google import genai
+import google.generativeai as genai
 from gtts import gTTS
 import base64
 
-# 1. Configuração do Cérebro do JARVIS usando o novo SDK estável
+# 1. Configuração do Cérebro do JARVIS (Gemini) usando Secrets seguro
 try:
-    # Busca a chave salva nos Secrets do Streamlit
-    client = genai.Client(api_key=st.secrets["GEMINI_KEY"])
+    GOOGLE_API_KEY = st.secrets["GEMINI_KEY"]
+    genai.configure(api_key=GOOGLE_API_KEY)
 except Exception:
-    st.error("Erro crítico: A chave 'GEMINI_KEY' não foi encontrada nos Secrets, Senhor.")
+    st.error("Erro crítico: A chave 'GEMINI_KEY' não foi encontrada nos Secrets do Streamlit, Senhor.")
 
 ano_atual = datetime.now().year
 
@@ -18,6 +18,15 @@ PROMPT_SISTEMA = (
     f"Você é o JARVIS, o assistente virtual sofisticado de Tony Stark. Responda em português de forma polida, "
     f"curta, use 'Senhor' para se referir ao usuário e seja direto. Ano atual: {ano_atual}."
 )
+
+# Inicialização estável do modelo
+try:
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-flash", 
+        system_instruction=PROMPT_SISTEMA
+    )
+except Exception as e:
+    st.error(f"Falha ao carregar o modelo de IA: {e}")
 
 # Configuração da página do App
 st.set_page_config(page_title="JARVIS OS", page_icon="🤖", layout="centered")
@@ -31,7 +40,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("J.A.R.V.I.S.")
+st.title("JARVIS")
 st.write("<p style='text-align:center; color:#00E5FF; opacity:0.7;'>INTERFACE DE REDE INTELIGENTE ONLINE</p>", unsafe_allow_html=True)
 
 if "messages" not in st.session_state:
@@ -66,14 +75,8 @@ if comando := st.chat_input("Diga suas diretrizes, Senhor..."):
     prompt_final = f"{contexto_conversa}\nuser: {comando}"
 
     try:
-        # Nova chamada padrão estruturada do Google (ignora rotas antigas de teste)
-        resposta_ia = client.models.generate_content(
-            model='gemini-1.5-flash',
-            contents=prompt_final,
-            config=genai.types.GenerateContentConfig(
-                system_instruction=PROMPT_SISTEMA,
-            ),
-        )
+        # Executa a geração usando o motor atualizado
+        resposta_ia = model.generate_content(prompt_final)
         resposta = resposta_ia.text
     except Exception as e:
         resposta = f"Desculpe, Senhor. Falha na nova diretriz de rede. Detalhes: {e}"
