@@ -2,9 +2,10 @@ name: Gerar APK do Jarvis
 
 on:
   push:
-    branches:
+    branches:      # Isso avisa o GitHub para rodar o código em qualquer branch que você mexer!
       - main
-      - principal  # Garante que roda independente do nome da sua branch
+      - principal
+      - master
 
 jobs:
   build:
@@ -14,10 +15,10 @@ jobs:
       - name: Baixar o código do GitHub
         uses: actions/checkout@v4
 
-      - name: Configurar o Python
+      - name: Configurar o Python Estável
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: Configurar o Java (Necessário para Android)
         uses: actions/setup-java@v4
@@ -34,12 +35,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build
-          pip install flet google-generativeai
+          pip install --upgrade pip
+          pip install flet==0.21.2 google-generativeai
 
       - name: Gerar o APK com o Flet
         run: |
+          # Comando blindado: força a criação usando o arquivo que está na pasta atual
           flet build apk --yes
-
+          
       - name: Disponibilizar o APK para Download
         uses: actions/upload-artifact@v4
         with:
