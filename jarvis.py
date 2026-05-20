@@ -6,7 +6,7 @@ from gtts import gTTS
 import base64
 
 # 1. Configuração do Cérebro do JARVIS (Gemini)
-# COLE SUA CHAVE DO GEMINI AQUI
+# GARANTA QUE SUA CHAVE ESTÁ AQUI
 GOOGLE_API_KEY = "AIzaSyANUdjj389fqx7UjpYyEPsLoIyg37M9YJA" 
 genai.configure(api_key=GOOGLE_API_KEY)
 
@@ -17,12 +17,16 @@ PROMPT_SISTEMA = (
     f"curta, use 'Senhor' para se referir ao usuário e seja direto. Ano atual: {ano_atual}."
 )
 
-models = model = genai.GenerativeModel(model_name="models/gemini-1.5-flash", system_instruction=PROMPT_SISTEMA)
+# Configuração do modelo usando a chamada direta e estável
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash", 
+    system_instruction=PROMPT_SISTEMA
+)
 
-# Configuração da página do App no celular
+# Configuração da página do App
 st.set_page_config(page_title="JARVIS OS", page_icon="🤖", layout="centered")
 
-# Estilo CSS para deixar com cara de sistema do Homem de Ferro (Neon e Escuro)
+# Estilo visual futurista
 st.markdown("""
     <style>
     .stApp { background-color: #05050A; color: #FFFFFF; }
@@ -34,43 +38,55 @@ st.markdown("""
 st.title("J.A.R.V.I.S.")
 st.write("<p style='text-align:center; color:#00E5FF; opacity:0.7;'>INTERFACE DE REDE INTELIGENTE ONLINE</p>", unsafe_allow_html=True)
 
-# Inicializa o histórico de conversa se não existir
+# Inicializa a lista de memória da conversa na tela
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "chat" not in st.session_state:
-    st.session_state.chat = model.start_chat(history=[])
 
-# Exibe as mensagens antigas na tela com visual de chat
+# Exibe as mensagens na tela
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Função para gerar áudio player escondido e falar no celular
+# Função de voz para o navegador do celular
 def falar_no_navegador(texto):
-    tts = gTTS(text=texto, lang='pt', slow=False)
-    tts.save("jarvis_voz.mp3")
-    with open("jarvis_voz.mp3", "rb") as f:
-        audio_bytes = f.read()
-    audio_base64 = base64.b64encode(audio_bytes).decode()
-    # Cria um player de áudio HTML invisível que toca sozinho (autoplay)
-    audio_html = f'<audio src="data:audio/mp3;base64,{audio_base64}" autoplay style="display:none;"></audio>'
-    st.markdown(audio_html, unsafe_allow_html=True)
-    os.remove("jarvis_voz.mp3")
+    try:
+        tts = gTTS(text=texto, lang='pt', slow=False)
+        tts.save("jarvis_voz.mp3")
+        with open("jarvis_voz.mp3", "rb") as f:
+            audio_bytes = f.read()
+        audio_base64 = base64.b64encode(audio_bytes).decode()
+        audio_html = f'<audio src="data:audio/mp3;base64,{audio_base64}" autoplay style="display:none;"></audio>'
+        st.markdown(audio_html, unsafe_allow_html=True)
+        os.remove("jarvis_voz.mp3")
+    except:
+        pass # Se o áudio falhar por permissão do navegador, o texto ainda funciona
 
-# Barra de comando na parte de baixo da tela
+# Barra de comando
 if comando := st.chat_input("Diga suas diretrizes, Senhor..."):
-    # Mostra o que você digitou
+    # Mostra o comando do usuário
     with st.chat_message("user"):
         st.markdown(comando)
     st.session_state.messages.append({"role": "user", "content": comando})
 
-    # Pede a resposta para a IA
-    resposta = st.session_state.chat.send_message(comando).text
+    # Criando o contexto para a IA lembrar das últimas mensagens sem quebrar o sistema
+    contexto_conversa = ""
+    for msg in st.session_state.messages[-5:]: # Pega as últimas 5 mensagens para dar memória
+        contexto_conversa += f"{msg['role']}: {msg['content']}\n"
+    
+    # Adiciona o comando atual ao envio
+    prompt_final = f"{contexto_conversa}\nuser: {comando}"
+
+    try:
+        # Chamada direta e ultra estável da IA
+        resposta_ia = model.generate_content(prompt_final)
+        resposta = resposta_ia.text
+    except Exception as e:
+        resposta = "Desculpe, Senhor. Meus sistemas de comunicação com o servidor falharam. Verifique se a API Key está correta."
 
     # Mostra a resposta do JARVIS
     with st.chat_message("assistant"):
         st.markdown(resposta)
     st.session_state.messages.append({"role": "assistant", "content": resposta})
     
-    # Faz o celular falar
+    # Executa a voz
     falar_no_navegador(resposta)
