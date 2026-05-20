@@ -4,7 +4,7 @@ import google.generativeai as genai
 
 # 1. Configuração do Cérebro do JARVIS (Gemini)
 # IMPORTANTE: Substitua pelo seu token gerado no Google AI Studio
-GOOGLE_API_KEY = "COLE_SUA_CHAVE_AQUI"
+GOOGLE_API_KEY = "AIzaSyANUdjj389fqx7UjpYyEPsLoIyg37M9YJA"
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Definindo como o Jarvis deve agir (Personalidade)
