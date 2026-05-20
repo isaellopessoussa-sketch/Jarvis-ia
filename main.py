@@ -22,7 +22,7 @@ except ImportError:
     droid = None
 
 # Configuração da IA (COLE SUA CHAVE AQUI)
-GOOGLE_API_KEY = "COLE_SUA_CHAVE_AQUI"
+GOOGLE_API_KEY = "AIzaSyC_J-L1-f0do3qK2-YvI12lCwbRIGsNdy0"
 genai.configure(api_key=GOOGLE_API_KEY)
 
 ARQUIVO_MEMORIA = "jarvis_memoria.txt"
