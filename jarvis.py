@@ -19,12 +19,16 @@ PROMPT_SISTEMA = (
     f"curta, use 'Senhor' para se referir ao usuário e seja direto. Ano atual: {ano_atual}."
 )
 
-# Inicialização do modelo da IA
+    # Inicialização do modelo da IA com o nome do modelo atualizado
 try:
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash", 
+        model_name="gemini-1.5-flash-latest", 
         system_instruction=PROMPT_SISTEMA
     )
+except Exception as e:
+    st.error(f"Falha ao carregar o modelo de IA: {e}")
+        
+
     
 except Exception as e:
     st.error(f"Falha ao carregar o modelo de IA: {e}")
