@@ -7,7 +7,7 @@ import flet as ft
 CHAVE_API_DO_GOOGLE = os.getenv("GEMINI_KEY")
 if not CHAVE_API_DO_GOOGLE:
     # Se você for testar direto no celular antes de compilar, pode colar sua chave aqui:
-    CHAVE_API_DO_GOOGLE = "SUA_CHAVE_GEMINI_AQUI"
+    CHAVE_API_DO_GOOGLE = "AIzaSyAQke8gkGvLJBuWYDZMinLF4FVexEfSaRQ"
 
 genai.configure(api_key=CHAVE_API_DO_GOOGLE)
 
