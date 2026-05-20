@@ -21,8 +21,8 @@ PROMPT_SISTEMA = (
 
 # Inicialização estável do modelo
 try:
-    model = genai.GenerativeModel(
-        models/modelname="gemini pro", 
+    models = genai.GenerativeModel(
+        model_name="gemini pro", 
         system_instruction=PROMPT_SISTEMA
     )
 except Exception as e:
