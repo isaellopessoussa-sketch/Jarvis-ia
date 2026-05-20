@@ -22,7 +22,7 @@ PROMPT_SISTEMA = (
     # Inicialização do modelo da IA com o nome do modelo atualizado
 try:
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash-latest", 
+        model_name="gemini-pro", 
         system_instruction=PROMPT_SISTEMA
     )
 
