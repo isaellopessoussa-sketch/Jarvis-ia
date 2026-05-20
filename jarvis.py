@@ -6,7 +6,7 @@ from gtts import gTTS
 import base64
 
 # 1. Configuração do Cérebro do JARVIS (Gemini)
-GOOGLE_API_KEY = "AIzaSyANUdjj389fqx7UjpyYEPsLoIyg37M9YJA" 
+GOOGLE_API_KEY "AIzaSyC_J-L1-f0do3qK2-YvI12lCwbRIGsNdy0" 
 genai.configure(api_key=GOOGLE_API_KEY)
 
 ano_atual = datetime.now().year
