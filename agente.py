@@ -3,7 +3,7 @@ import requests
 import google.generativeai as genai
 
 # 1. Configuração do Cérebro do Agente
-GOOGLE_API_KEY = "AIzaSyANUdjj389fqx7UjpYyEPsLoIyg37M9YJA"
+GOOGLE_API_KEY = "AIzaSyC_J-L1-f0do3qK2-YvI12lCwbRIGsNdy0"
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # O prompt do Agente ensina ele a quebrar missões complexas em passos menores
