@@ -1,12 +1,13 @@
 import os
 import asyncio
 import webbrowser
+import requests
 import google.generativeai as genai
 from gtts import gTTS
 import pygame
 
 # 1. Configuração do Cérebro do JARVIS (Gemini)
-GOOGLE_API_KEY = "COLE_SUA_CHAVE_AQUI" # Lembre de colocar sua chave aqui
+GOOGLE_API_KEY = "AIzaSyANUdjj389fqx7UjpYyEPsLoIyg37M9YJA" # Lembre de colocar sua chave aqui
 genai.configure(api_key=GOOGLE_API_KEY)
 
 PROMPT_SISTEMA = (
@@ -38,12 +39,31 @@ def falar(texto_para_falar):
     if os.path.exists("jarvis_voz.mp3"):
         os.remove("jarvis_voz.mp3")
 
-# 3. Função para executar comandos (Sites e Aplicativos)
+# 3. Nova Função: Consultar o Clima
+def pegar_previsao_tempo():
+    try:
+        # Ele puxa o clima do Brasil de forma simples e direta em português
+        resposta = requests.get("https://wttr.in/?format=%C++%t", timeout=5)
+        if resposta.status_code == 200:
+            dados_clima = resposta.text.strip()
+            return f"Os sensores indicam: {dados_clima} para a sua região, Senhor."
+        else:
+            return "Não consegui conectar aos satélites meteorológicos, Senhor."
+    except:
+        return "Sistemas de clima offline no momento, Senhor."
+
+# 4. Função para executar comandos (Sites, Aplicativos e Clima)
 def executar_comando(comando_usuario):
     cmd = comando_usuario.lower()
     
+    # --- COMANDO DE CLIMA ---
+    if "clima" in cmd or "previsão do tempo" in cmd or "tempo hoje" in cmd:
+        info_clima = pegar_previsao_tempo()
+        falar(info_clima)
+        return True
+    
     # --- COMANDOS DE SITES ---
-    if "abrir youtube" in cmd:
+    elif "abrir youtube" in cmd:
         falar("Abrindo o YouTube imediatamente, Senhor.")
         webbrowser.open("https://www.youtube.com")
         return True
@@ -59,21 +79,19 @@ def executar_comando(comando_usuario):
     # --- COMANDOS DE APLICATIVOS (CELULAR) ---
     elif "abrir whatsapp" in cmd:
         falar("Iniciando o WhatsApp, Senhor. Mensagens prontas para envio.")
-        # Abre o aplicativo do WhatsApp no celular
         webbrowser.open("whatsapp://")
         return True
     elif "abrir spotify" in cmd or "tocar música" in cmd:
         falar("Iniciando o Spotify. Sintonizando suas músicas, Senhor.")
-        # Abre o aplicativo do Spotify no celular
         webbrowser.open("spotify://")
         return True
         
     return False
 
-# 4. Loop Principal
+# 5. Loop Principal
 async def main():
     pygame.init()
-    falar("Protocolos de mapeamento atualizados. Pronto para comandar, Senhor.")
+    falar("Sistemas de diagnóstico atualizados. Satélites conectados, Senhor.")
     
     while True:
         comando = input("\nVocê: ")
