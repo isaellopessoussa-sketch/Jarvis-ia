@@ -5,7 +5,7 @@ import google.generativeai as genai
 from gtts import gTTS
 import base64
 
-# 1. Configuração do Cérebro do JARVIS (Gemini) usando Secrets seguro
+# 1. Configuração do Cérebro do JARVIS (Gemini) via Secrets Seguro
 try:
     GOOGLE_API_KEY = st.secrets["GEMINI_KEY"]
     genai.configure(api_key=GOOGLE_API_KEY)
@@ -19,16 +19,14 @@ PROMPT_SISTEMA = (
     f"curta, use 'Senhor' para se referir ao usuário e seja direto. Ano atual: {ano_atual}."
 )
 
-# Inicialização estável do modelo com formato correto
+# Inicialização com o formato exato exigido pelo servidor atualizado
 try:
     model = genai.GenerativeModel(
         model_name="models/gemini-1.5-flash", 
         system_instruction=PROMPT_SISTEMA
     )
-
 except Exception as e:
-    st.error(f"Falha ao carregar o modelo de IA: {e}"      
-
+    st.error(f"Falha ao carregar o modelo de IA: {e}")
 
 # Configuração da página do App
 st.set_page_config(page_title="JARVIS OS", page_icon="🤖", layout="centered")
@@ -77,7 +75,6 @@ if comando := st.chat_input("Diga suas diretrizes, Senhor..."):
     prompt_final = f"{contexto_conversa}\nuser: {comando}"
 
     try:
-        # Executa a geração usando o motor atualizado
         resposta_ia = model.generate_content(prompt_final)
         resposta = resposta_ia.text
     except Exception as e:
