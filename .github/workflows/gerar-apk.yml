@@ -40,8 +40,8 @@ jobs:
 
       - name: Gerar o APK com o Flet
         run: |
-          # Comando blindado: força a criação usando o arquivo que está na pasta atual
-          flet build apk --yes
+           flet build apk
+        
           
       - name: Disponibilizar o APK para Download
         uses: actions/upload-artifact@v4
