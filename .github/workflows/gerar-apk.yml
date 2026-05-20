@@ -1,0 +1,47 @@
+name: Gerar APK do Jarvis
+
+on:
+  push:
+    branches:
+      - main
+      - principal  # Garante que roda independente do nome da sua branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o código do GitHub
+        uses: actions/checkout@v4
+
+      - name: Configurar o Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Configurar o Java (Necessário para Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Instalar o Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Instalar dependências e Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+          pip install flet google-generativeai
+
+      - name: Gerar o APK com o Flet
+        run: |
+          flet build apk --yes
+
+      - name: Disponibilizar o APK para Download
+        uses: actions/upload-artifact@v4
+        with:
+          name: Jarvis-APK
+          path: build/apk/*.apk
