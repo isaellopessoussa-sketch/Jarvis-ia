@@ -19,14 +19,15 @@ PROMPT_SISTEMA = (
     f"curta, use 'Senhor' para se referir ao usuário e seja direto. Ano atual: {ano_atual}."
 )
 
-# Inicialização estável do modelo
+# Inicialização estável do modelo com formato correto
 try:
     model = genai.GenerativeModel(
-        model_name="gemini pro", 
+        model_name="models/gemini-1.5-flash", 
         system_instruction=PROMPT_SISTEMA
     )
 except Exception as e:
-    st.error(f"Falha ao carregar o modelo de IA: {e}")
+    st.error(f"Falha ao carregar o modelo de IA: {e}"      
+
 
 # Configuração da página do App
 st.set_page_config(page_title="JARVIS OS", page_icon="🤖", layout="centered")
