@@ -5,7 +5,6 @@ import google.generativeai as genai
 from gtts import gTTS
 import base64
 
-# 1. Configuração do Cérebro do JARVIS (Gemini)
 # 1. Configuração do Cérebro do JARVIS (Gemini) via Secrets Seguro
 GOOGLE_API_KEY = st.secrets["GEMINI_KEY"]
 genai.configure(api_key=GOOGLE_API_KEY)
