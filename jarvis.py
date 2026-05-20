@@ -17,7 +17,7 @@ PROMPT_SISTEMA = (
     f"curta, use 'Senhor' para se referir ao usuário e seja direto. Ano atual: {ano_atual}."
 )
 
-model = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=PROMPT_SISTEMA)
+models = model = genai.GenerativeModel(model_name="models/gemini-1.5-flash", system_instruction=PROMPT_SISTEMA)
 
 # Configuração da página do App no celular
 st.set_page_config(page_title="JARVIS OS", page_icon="🤖", layout="centered")
