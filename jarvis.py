@@ -25,6 +25,7 @@ try:
         model_name="gemini-1.5-flash", 
         system_instruction=PROMPT_SISTEMA
     )
+    
 except Exception as e:
     st.error(f"Falha ao carregar o modelo de IA: {e}")
 
