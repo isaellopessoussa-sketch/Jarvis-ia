@@ -6,7 +6,7 @@ from gtts import gTTS
 import pygame
 
 # 1. Configuração do Cérebro do JARVIS (Gemini)
-GOOGLE_API_KEY = "AIzaSyANUdjj389fqx7UjpYyEPsLoIyg37M9YJA" # Lembre de colocar sua chave aqui
+GOOGLE_API_KEY = "COLE_SUA_CHAVE_AQUI" # Lembre de colocar sua chave aqui
 genai.configure(api_key=GOOGLE_API_KEY)
 
 PROMPT_SISTEMA = (
@@ -38,10 +38,11 @@ def falar(texto_para_falar):
     if os.path.exists("jarvis_voz.mp3"):
         os.remove("jarvis_voz.mp3")
 
-# 3. Função para executar comandos no celular/PC
+# 3. Função para executar comandos (Sites e Aplicativos)
 def executar_comando(comando_usuario):
     cmd = comando_usuario.lower()
     
+    # --- COMANDOS DE SITES ---
     if "abrir youtube" in cmd:
         falar("Abrindo o YouTube imediatamente, Senhor.")
         webbrowser.open("https://www.youtube.com")
@@ -55,12 +56,24 @@ def executar_comando(comando_usuario):
         webbrowser.open("https://github.com/isaellopessoussa-sketch/Jarvis-ia")
         return True
         
+    # --- COMANDOS DE APLICATIVOS (CELULAR) ---
+    elif "abrir whatsapp" in cmd:
+        falar("Iniciando o WhatsApp, Senhor. Mensagens prontas para envio.")
+        # Abre o aplicativo do WhatsApp no celular
+        webbrowser.open("whatsapp://")
+        return True
+    elif "abrir spotify" in cmd or "tocar música" in cmd:
+        falar("Iniciando o Spotify. Sintonizando suas músicas, Senhor.")
+        # Abre o aplicativo do Spotify no celular
+        webbrowser.open("spotify://")
+        return True
+        
     return False
 
 # 4. Loop Principal
 async def main():
     pygame.init()
-    falar("Sistemas atualizados. Online e pronto, Senhor.")
+    falar("Protocolos de mapeamento atualizados. Pronto para comandar, Senhor.")
     
     while True:
         comando = input("\nVocê: ")
@@ -69,10 +82,8 @@ async def main():
             falar("Desligando sistemas de energia. Até logo, Senhor.")
             break
             
-        # Primeiro, checa se é um comando de abrir algo
         foi_comando = executar_comando(comando)
         
-        # Se não foi um comando de abrir site, deixa o Gemini responder normalmente
         if not foi_comando:
             resposta = chat.send_message(comando)
             falar(resposta.text)
