@@ -1,16 +1,16 @@
 import os
 import streamlit as st
 from datetime import datetime
-import google.generativeai as genai
+from google import genai
 from gtts import gTTS
 import base64
 
-# 1. Configuração do Cérebro do JARVIS (Gemini) via Secrets Seguro
+# 1. Configuração do Cérebro do JARVIS usando o novo SDK estável
 try:
-    GOOGLE_API_KEY = st.secrets["GEMINI_KEY"]
-    genai.configure(api_key=GOOGLE_API_KEY)
+    # Busca a chave salva nos Secrets do Streamlit
+    client = genai.Client(api_key=st.secrets["GEMINI_KEY"])
 except Exception:
-    st.error("Erro crítico: A chave 'GEMINI_KEY' não foi encontrada nos Secrets do Streamlit, Senhor.")
+    st.error("Erro crítico: A chave 'GEMINI_KEY' não foi encontrada nos Secrets, Senhor.")
 
 ano_atual = datetime.now().year
 
@@ -19,25 +19,10 @@ PROMPT_SISTEMA = (
     f"curta, use 'Senhor' para se referir ao usuário e seja direto. Ano atual: {ano_atual}."
 )
 
-    # Inicialização do modelo da IA com o nome do modelo atualizado
-try:
-    model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash", 
-        system_instruction=PROMPT_SISTEMA
-    )
-
-except Exception as e:
-    st.error(f"Falha ao carregar o modelo de IA: {e}")
-        
-
-    
-except Exception as e:
-    st.error(f"Falha ao carregar o modelo de IA: {e}")
-
 # Configuração da página do App
 st.set_page_config(page_title="JARVIS OS", page_icon="🤖", layout="centered")
 
-# Estilo visual futurista (Neon e Escuro)
+# Estilo visual futurista
 st.markdown("""
     <style>
     .stApp { background-color: #05050A; color: #FFFFFF; }
@@ -49,16 +34,13 @@ st.markdown("""
 st.title("J.A.R.V.I.S.")
 st.write("<p style='text-align:center; color:#00E5FF; opacity:0.7;'>INTERFACE DE REDE INTELIGENTE ONLINE</p>", unsafe_allow_html=True)
 
-# Inicializa o histórico de mensagens
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Exibe as mensagens na tela
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Função de voz para o navegador
 def falar_no_navegador(texto):
     try:
         tts = gTTS(text=texto, lang='pt', slow=False)
@@ -72,13 +54,11 @@ def falar_no_navegador(texto):
     except:
         pass
 
-# Entrada de comandos
 if comando := st.chat_input("Diga suas diretrizes, Senhor..."):
     with st.chat_message("user"):
         st.markdown(comando)
     st.session_state.messages.append({"role": "user", "content": comando})
 
-    # Monta o histórico recente para dar contexto à IA
     contexto_conversa = ""
     for msg in st.session_state.messages[-5:]:
         contexto_conversa += f"{msg['role']}: {msg['content']}\n"
@@ -86,10 +66,17 @@ if comando := st.chat_input("Diga suas diretrizes, Senhor..."):
     prompt_final = f"{contexto_conversa}\nuser: {comando}"
 
     try:
-        resposta_ia = model.generate_content(prompt_final)
+        # Nova chamada padrão estruturada do Google (ignora rotas antigas de teste)
+        resposta_ia = client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=prompt_final,
+            config=genai.types.GenerateContentConfig(
+                system_instruction=PROMPT_SISTEMA,
+            ),
+        )
         resposta = resposta_ia.text
     except Exception as e:
-        resposta = f"Desculpe, Senhor. Houve uma falha na comunicação. Erro técnico: {e}"
+        resposta = f"Desculpe, Senhor. Falha na nova diretriz de rede. Detalhes: {e}"
 
     with st.chat_message("assistant"):
         st.markdown(resposta)
