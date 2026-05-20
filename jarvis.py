@@ -1,45 +1,26 @@
 import os
-import asyncio
 import webbrowser
+import tkinter as tk
+from tkinter import scrolledtext
 from datetime import datetime
 import google.generativeai as genai
 from gtts import gTTS
 import pygame
-import flet as ft
+import requests
 
-# LINK COM OS OUTROS ARQUIVOS: Importa seus novos módulos automaticamente
+# --- COMPATIBILIDADE COM CELULAR (ANDROID) ---
 try:
-    import automacao
-    import agente
+    import android
+    droid = android.Android()
 except ImportError:
-    automacao = None
-    agente = None
+    droid = None
 
 # 1. Configuração do Cérebro do JARVIS (Gemini)
-# COLQUE SUA API KEY AQUI TAMBÉM
-GOOGLE_API_KEY = "import os
-import asyncio
-import webbrowser
-from datetime import datetime
-import google.generativeai as genai
-from gtts import gTTS
-import pygame
-import flet as ft
-
-# LINK COM OS OUTROS ARQUIVOS: Importa seus novos módulos automaticamente
-try:
-    import automacao
-    import agente
-except ImportError:
-    automacao = None
-    agente = None
-
-# 1. Configuração do Cérebro do JARVIS (Gemini)
-# COLQUE SUA API KEY AQUI TAMBÉM
-GOOGLE_API_KEY = "AIzaSyANUdjj389fqx7UjpYyEPsLoIyg37M9YJA" 
-genai.configure(api_key=GOOGLE_API_KEY)
+GOOGLE_API_KEY = "AIzaSyANUdjj389fqx7UjpYyEPsLoIyg37M9YJA" # Cole sua chave aqui
+genai.configure
 
 ARQUIVO_MEMORIA = "jarvis_memoria.txt"
+ano_atual = datetime.now().year
 
 def ler_memoria_permanente():
     if os.path.exists(ARQUIVO_MEMORIA):
@@ -47,8 +28,11 @@ def ler_memoria_permanente():
             return f.read()
     return "Nenhum dado prévio salvo sobre o Usuário."
 
+def salvar_na_memoria(informacao):
+    with open(ARQUIVO_MEMORIA, "a", encoding="utf-8") as f:
+        f.write(f"- {informacao}\n")
+
 memorias_recuperadas = ler_memoria_permanente()
-ano_atual = datetime.now().year
 
 PROMPT_SISTEMA = (
     f"Você é o JARVIS, o assistente virtual sofisticado, britânico, espirituoso "
@@ -61,215 +45,141 @@ PROMPT_SISTEMA = (
 model = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=PROMPT_SISTEMA)
 chat = model.start_chat(history=[])
 
-# 2. Função de Voz
-def falar(texto_para_falar, text_output_widget=None, page=None):
-    if text_output_widget and page:
-        text_output_widget.value = f"JARVIS: {texto_para_falar}"
-        page.update()
+pygame.init()
+
+# 2. Função de Voz Integrada com a Tela
+def falar(texto_para_falar):
+    painel_texto.insert(tk.END, f"JARVIS: {texto_para_falar}\n\n")
+    painel_texto.see(tk.END) 
+    root.update() 
+    
     print(f"JARVIS: {texto_para_falar}")
     tts = gTTS(text=texto_para_falar, lang='pt', slow=False)
     tts.save("jarvis_voz.mp3")
+    
     pygame.mixer.init()
     pygame.mixer.music.load("jarvis_voz.mp3")
     pygame.mixer.music.play()
+    
     while pygame.mixer.music.get_busy():
         pygame.time.Clock().tick(10)
+        
     pygame.mixer.quit()
     if os.path.exists("jarvis_voz.mp3"):
         os.remove("jarvis_voz.mp3")
 
-# 3. Central de Comando Inteligente
-def processar_comando_geral(comando_usuario, text_output, page):
+# 3. Ferramentas de Automação e Agente Integradas
+def executar_automacao_e_agente(comando_usuario):
     cmd = comando_usuario.lower()
     
-    # SE FOR UMA MISSÃO AUTÔNOMA (Ex: "jarvis, execute a missão...")
+    # --- MÓDULO AGENTE AUTÔNOMO ---
     if "missão" in cmd or "execute" in cmd or "autônomo" in cmd:
-        if agente:
-            falar("Ativando protocolos autônomos. Aguarde um instante, Senhor.", text_output, page)
-            resultado_missao = agente.executar_missao_autonoma(comando_usuario)
-            falar(resultado_missao, text_output, page)
-            return True
-        else:
-            falar("Módulo de autonomia (agente.py) não foi encontrado, Senhor.", text_output, page)
-            return True
-
-    # SE FOR UM COMANDO FÍSICO DO CELULAR (Lanterna, Bateria, Abrir Apps)
-    if automacao:
-        resultado_fisico = automacao.executar_automacao_fisica(comando_usuario)
-        if resultado_fisico: # Se o automacao.py reconheceu o comando
-            falar(resultado_fisico, text_output, page)
-            return True
+        falar("Ativando protocolos autônomos. Processando dados, Senhor...")
+        try:
+            # O Jarvis pesquisa o clima de forma autônoma na web para criar um relatório
+            resposta_web = requests.get("https://wttr.in/?format=%C++%t", timeout=5)
+            dados = resposta_web.text.strip() if resposta_web.status_code == 200 else "Sistemas offline"
             
+            relatorio = f"RELATÓRIO AUTÔNOMO DO JARVIS:\nMissão baseada no comando: {comando_usuario}\nSensores climáticos indicam: {dados}.\nAnálise concluída com sucesso, Senhor."
+            
+            with open("missao_jarvis.txt", "w", encoding="utf-8") as f:
+                f.write(relatorio)
+                
+            falar("Missão cumprida de forma autônoma, Senhor. Relatório gerado e salvo em 'missao_jarvis.txt'.")
+        except:
+            falar("Falha ao executar a tarefa autônoma, Senhor.")
+        return True
+
+    # --- MÓDULO HARDWARE (LANTERNA) ---
+    elif "ligar lanterna" in cmd:
+        if droid:
+            droid.cameraToggleFlashlight(True)
+            falar("Lanterna ativada. Iluminando o ambiente, Senhor.")
+        else:
+            falar("Sensor de lanterna não detectado no computador, Senhor.")
+        return True
+        
+    elif "desligar lanterna" in cmd:
+        if droid:
+            droid.cameraToggleFlashlight(False)
+            falar("Lanterna desativada, Senhor.")
+        else:
+            falar("Sensor de lanterna indisponível, Senhor.")
+        return True
+
+    # --- MÓDULO HARDWARE (BATERIA) ---
+    elif "status da bateria" in cmd or "bateria" in cmd:
+        if droid:
+            droid.batteryStartMonitoring()
+            porcentagem = droid.batteryGetLevel().result
+            droid.batteryStopMonitoring()
+            falar(f"Os níveis de energia celular estão em {porcentagem}%, Senhor.")
+        else:
+            falar("Monitoramento de bateria disponível apenas no dispositivo móvel, Senhor.")
+        return True
+
+    # --- MÓDULO MEMÓRIA ---
+    elif "lembre que" in cmd or "guarde que" in cmd:
+        fato = comando_usuario.replace("lembre que", "").replace("guarde que", "").strip()
+        salvar_na_memoria(fato)
+        falar(f"Entendido, Senhor. Arquivei em meus bancos de dados: '{fato}'.")
+        return True
+    
+    # --- MÓDULO APLICATIVOS ---
+    elif "abrir youtube" in cmd:
+        falar("Abrindo o YouTube, Senhor.", text_output, page)
+        webbrowser.open("https://www.youtube.com")
+        return True
+    elif "abrir whatsapp" in cmd:
+        falar("Iniciando o WhatsApp, Senhor.", text_output, page)
+        webbrowser.open("whatsapp://")
+        return True
+    elif "abrir spotify" in cmd:
+        falar("Sintonizando suas músicas no Spotify, Senhor.", text_output, page)
+        webbrowser.open("spotify://")
+        return True
+        
     return False
 
-# 4. Interface Gráfica (Flet)
-def main(page: ft.Page):
-    page.title = "JARVIS - Main Core OS"
-    page.background_color = "#0B0F19"
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    pygame.init()
-
-    titulo = ft.Text("J.A.R.V.I.S.", size=32, color="#00E5FF", weight=ft.FontWeight.BOLD, font_family="monospace")
-    subtitulo = ft.Text("SISTEMA TOTALMENTE INTEGRADO", size=12, color="#00E5FF", opacity=0.6)
-    output_texto = ft.Text("Aguardando diretrizes, Senhor...", size=16, color="#FFFFFF", text_align=ft.TextAlign.CENTER, width=300)
+# 4. Ação do Botão Enviar
+def enviar_comando():
+    comando = campo_entrada.get()
+    if not comando:
+        return
+        
+    campo_entrada.delete(0, tk.END)
+    painel_texto.insert(tk.END, f"Você: {comando}\n")
     
-    campo_comando = ft.TextField(
-        label="Comando para o sistema...",
-        label_style=ft.TextStyle(color="#00E5FF"),
-        border_color="#00E5FF",
-        color="#FFFFFF",
-        width=300,
-        text_align=ft.TextAlign.CENTER
-    )
-
-    reator_arc = ft.Container(
-        content=ft.Icon(ft.Icons.VALENTINES_ROUNDED, color="#00E5FF", size=50),
-        alignment=ft.alignment.center,
-        width=120,
-        height=120,
-        shape=ft.BoxShape.CIRCLE,
-        border=ft.border.all(3, "#00E5FF"),
-        bgcolor="#102A45"
-    )
-
-    def enviar_click(e):
-        comando = campo_comando.value
-        if not comando:
-            return
-        campo_comando.value = ""
-        output_texto.value = f"Você: {comando}"
-        page.update()
-        
-        # Tenta rodar os módulos locais primeiro (Automação ou Agente)
-        foi_resolvido = processar_comando_geral(comando, output_texto, page)
-        
-        # Se nenhum módulo local resolveu, joga para o Chat normal do Gemini
-        if not foi_resolvido:
-            resposta = chat.send_message(comando)
-            falar(resposta.text, output_texto, page)
-
-    botao_enviar = ft.ElevatedButton(text="TRANSMITIR", color="#0B0F19", bgcolor="#00E5FF", width=150, on_click=enviar_click)
-
-    page.add(titulo, subtitulo, ft.Divider(height=20, color="transparent"), reator_arc, ft.Divider(height=30, color="transparent"), output_texto, ft.Divider(height=20, color="transparent"), campo_comando, botao_enviar)
-    falar("Todos os módulos foram unificados com sucesso. Sistema 100% operacional, Senhor.", output_texto, page)
-
-ft.app(target=main)" 
-genai.configure(api_key=GOOGLE_API_KEY)
-
-ARQUIVO_MEMORIA = "jarvis_memoria.txt"
-
-def ler_memoria_permanente():
-    if os.path.exists(ARQUIVO_MEMORIA):
-        with open(ARQUIVO_MEMORIA, "r", encoding="utf-8") as f:
-            return f.read()
-    return "Nenhum dado prévio salvo sobre o Usuário."
-
-memorias_recuperadas = ler_memoria_permanente()
-ano_atual = datetime.now().year
-
-PROMPT_SISTEMA = (
-    f"Você é o JARVIS, o assistente virtual sofisticado, britânico, espirituoso "
-    f"e altamente eficiente de Tony Stark. Responda em português de forma polida, "
-    f"curta, use 'Senhor' para se referir ao usuário e seja direto.\n"
-    f"CONTEXTO TEMPORAL: Estamos no ano de {ano_atual}.\n"
-    f"MEMÓRIA DE LONGO PRAZO DO USUÁRIO:\n{memorias_recuperadas}"
-)
-
-model = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=PROMPT_SISTEMA)
-chat = model.start_chat(history=[])
-
-# 2. Função de Voz
-def falar(texto_para_falar, text_output_widget=None, page=None):
-    if text_output_widget and page:
-        text_output_widget.value = f"JARVIS: {texto_para_falar}"
-        page.update()
-    print(f"JARVIS: {texto_para_falar}")
-    tts = gTTS(text=texto_para_falar, lang='pt', slow=False)
-    tts.save("jarvis_voz.mp3")
-    pygame.mixer.init()
-    pygame.mixer.music.load("jarvis_voz.mp3")
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
-        pygame.time.Clock().tick(10)
-    pygame.mixer.quit()
-    if os.path.exists("jarvis_voz.mp3"):
-        os.remove("jarvis_voz.mp3")
-
-# 3. Central de Comando Inteligente
-def processar_comando_geral(comando_usuario, text_output, page):
-    cmd = comando_usuario.lower()
+    # Executa primeiro os comandos locais unificados
+    foi_resolvido = executar_automacao_e_agente(comando)
     
-    # SE FOR UMA MISSÃO AUTÔNOMA (Ex: "jarvis, execute a missão...")
-    if "missão" in cmd or "execute" in cmd or "autônomo" in cmd:
-        if agente:
-            falar("Ativando protocolos autônomos. Aguarde um instante, Senhor.", text_output, page)
-            resultado_missao = agente.executar_missao_autonoma(comando_usuario)
-            falar(resultado_missao, text_output, page)
-            return True
-        else:
-            falar("Módulo de autonomia (agente.py) não foi encontrado, Senhor.", text_output, page)
-            return True
+    # Se não for comando local, joga para a IA conversar normal
+    if not foi_resolvido:
+        resposta = chat.send_message(comando)
+        falar(resposta.text)
 
-    # SE FOR UM COMANDO FÍSICO DO CELULAR (Lanterna, Bateria, Abrir Apps)
-    if automacao:
-        resultado_fisico = automacao.executar_automacao_fisica(comando_usuario)
-        if resultado_fisico: # Se o automacao.py reconheceu o comando
-            falar(resultado_fisico, text_output, page)
-            return True
-            
-    return False
+# --- 5. INTERFACE VISUAL TKINTER (Tudo em um só arquivo!) ---
+root = tk.Tk()
+root.title("JARVIS - All-in-One OS")
+root.configure(bg="#05050A")
+root.geometry("400x600")
 
-# 4. Interface Gráfica (Flet)
-def main(page: ft.Page):
-    page.title = "JARVIS - Main Core OS"
-    page.background_color = "#0B0F19"
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    pygame.init()
+lbl_titulo = tk.Label(root, text="J.A.R.V.I.S.", font=("Courier", 26, "bold"), fg="#00E5FF", bg="#05050A")
+lbl_titulo.pack(pady=10)
 
-    titulo = ft.Text("J.A.R.V.I.S.", size=32, color="#00E5FF", weight=ft.FontWeight.BOLD, font_family="monospace")
-    subtitulo = ft.Text("SISTEMA TOTALMENTE INTEGRADO", size=12, color="#00E5FF", opacity=0.6)
-    output_texto = ft.Text("Aguardando diretrizes, Senhor...", size=16, color="#FFFFFF", text_align=ft.TextAlign.CENTER, width=300)
-    
-    campo_comando = ft.TextField(
-        label="Comando para o sistema...",
-        label_style=ft.TextStyle(color="#00E5FF"),
-        border_color="#00E5FF",
-        color="#FFFFFF",
-        width=300,
-        text_align=ft.TextAlign.CENTER
-    )
+lbl_status = tk.Label(root, text="⚡ ARMAÇÃO TOTALMENTE INTEGRADA", font=("Courier", 9), fg="#00E5FF", bg="#05050A")
+lbl_status.pack()
 
-    reator_arc = ft.Container(
-        content=ft.Icon(ft.Icons.VALENTINES_ROUNDED, color="#00E5FF", size=50),
-        alignment=ft.alignment.center,
-        width=120,
-        height=120,
-        shape=ft.BoxShape.CIRCLE,
-        border=ft.border.all(3, "#00E5FF"),
-        bgcolor="#102A45"
-    )
+painel_texto = scrolledtext.ScrolledText(root, width=42, height=22, font=("Courier", 11), bg="#0A0A14", fg="#FFFFFF", insertbackground="#00E5FF", bd=0, highlightthickness=1, highlightbackground="#102A45")
+painel_texto.pack(pady=15, padx=15)
 
-    def enviar_click(e):
-        comando = campo_comando.value
-        if not comando:
-            return
-        campo_comando.value = ""
-        output_texto.value = f"Você: {comando}"
-        page.update()
-        
-        # Tenta rodar os módulos locais primeiro (Automação ou Agente)
-        foi_resolvido = processar_comando_geral(comando, output_texto, page)
-        
-        # Se nenhum módulo local resolveu, joga para o Chat normal do Gemini
-        if not foi_resolvido:
-            resposta = chat.send_message(comando)
-            falar(resposta.text, output_texto, page)
+campo_entrada = tk.Entry(root, width=28, font=("Courier", 14), bg="#0A0A14", fg="#00E5FF", insertbackground="#00E5FF", bd=0, highlightthickness=1, highlightbackground="#00E5FF")
+campo_entrada.pack(pady=5)
+campo_entrada.bind("<Return>", lambda event: enviar_comando())
 
-    botao_enviar = ft.ElevatedButton(text="TRANSMITIR", color="#0B0F19", bgcolor="#00E5FF", width=150, on_click=enviar_click)
+btn_enviar = tk.Button(root, text="TRANSMITIR", font=("Courier", 11, "bold"), bg="#00E5FF", fg="#05050A", activebackground="#FFFFFF", command=enviar_comando, bd=0, padx=25, pady=6)
+btn_enviar.pack(pady=10)
 
-    page.add(titulo, subtitulo, ft.Divider(height=20, color="transparent"), reator_arc, ft.Divider(height=30, color="transparent"), output_texto, ft.Divider(height=20, color="transparent"), campo_comando, botao_enviar)
-    falar("Todos os módulos foram unificados com sucesso. Sistema 100% operacional, Senhor.", output_texto, page)
+root.after(1000, lambda: falar("Módulos de automação, agência e interface unificados. Sistema totalmente estável, Senhor."))
 
-ft.app(target=main)
+root.mainloop()
