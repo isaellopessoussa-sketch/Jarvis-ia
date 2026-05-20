@@ -3,16 +3,15 @@ import datetime
 import google.generativeai as genai
 import flet as ft
 
-# 1. Configuração da API Key (O Flet puxa das variáveis de ambiente do sistema)
+# 1. Configuração da API Key (Puxando do sistema)
 CHAVE_API_DO_GOOGLE = os.getenv("GEMINI_KEY")
 if not CHAVE_API_DO_GOOGLE:
-    # Se você testar localmente e não tiver a variável, coloque sua chave aqui para testar:
+    # Se você for testar direto no celular antes de compilar, pode colar sua chave aqui:
     CHAVE_API_DO_GOOGLE = "SUA_CHAVE_GEMINI_AQUI"
 
-genai.configure(chave_api=CHAVE_API_DO_GOOGLE)
+genai.configure(api_key=CHAVE_API_DO_GOOGLE)
 
-ano_real = datetime.datetime.now().year
-PROMPT_SISTEMA = f"Você é o JARVIS, o assistente de Tony Stark. Responda em português."
+PROMPT_SISTEMA = "Você é o JARVIS, o assistente inteligente de Tony Stark. Responda em português de forma prestativa, formal e inteligente, chamando o usuário de Senhor."
 
 try:
     modelo = genai.GenerativeModel(
@@ -27,7 +26,7 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.DARK
     page.vertical_alignment = ft.MainAxisAlignment.END
 
-    # Histórico do chat para o Flet e para o Gemini
+    # Histórico do chat na tela e na memória do Gemini
     chat_historico = ft.Column(expand=True, scroll=ft.ScrollMode.ALWAYS)
     conversa_gemini = modelo.start_chat(history=[])
 
@@ -35,15 +34,16 @@ def main(page: ft.Page):
         if not campo_texto.value:
             return
         
-        # Mensagem do Usuário
         user_msg = campo_texto.value
+        
+        # Mostra a mensagem do Usuário na tela
         chat_historico.controls.append(
             ft.Text(f"Senhor: {user_msg}", color=ft.colors.BLUE_200, size=16)
         )
         campo_texto.value = ""
         page.update()
 
-        # Resposta do Jarvis
+        # Busca a resposta com o Jarvis
         try:
             resposta = conversa_gemini.send_message(user_msg)
             chat_historico.controls.append(
@@ -51,12 +51,12 @@ def main(page: ft.Page):
             )
         except Exception as err:
             chat_historico.controls.append(
-                ft.Text(f"JARVIS: Erro ao processar... {err}", color=ft.colors.RED_400)
+                ft.Text(f"JARVIS: Erro nos sistemas... {err}", color=ft.colors.RED_400)
             )
         
         page.update()
 
-    # Elementos da Tela
+    # Caixas de texto e botões da interface do App
     campo_texto = ft.TextField(
         hint_text="Diga suas diretrizes, Senhor...",
         expand=True,
@@ -68,7 +68,7 @@ def main(page: ft.Page):
         on_click=enviar_mensagem
     )
 
-    # Layout da página
+    # Junta tudo na tela do aplicativo
     page.add(
         ft.Container(
             content=chat_historico,
@@ -81,6 +81,6 @@ def main(page: ft.Page):
         )
     )
 
-# Importante para o Flet saber que vai rodar como app
+# Executa o Flet como um aplicativo nativo
 if __name__ == "__main__":
     ft.app(target=main)
