@@ -40,7 +40,7 @@ jobs:
 
       - name: Gerar o APK com o Flet
         run: |
-          flet build apk --no-interactive
+          flet build apk
           
       - name: Disponibilizar o APK para Download
         uses: actions/upload-artifact@v4
